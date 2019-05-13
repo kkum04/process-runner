@@ -1,0 +1,128 @@
+<html>
+
+<head>
+  <title>process-runner</title>
+
+  <!-- Load required Bootstrap and BootstrapVue CSS -->
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+  <!-- Load Vue followed by BootstrapVue -->
+  <script src="//unpkg.com/vue@latest/dist/vue.min.js"></script>
+  <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+  <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+
+  <link rel="stylesheet" href="/stylesheets/style.css">
+
+  <style>
+    .card:nth-child(n+2) {
+      border-top: 0px
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="app">
+    <b-card bg-variant="light"
+            class="card"
+            v-for="process in processes">
+
+      <b-form-group
+          label-cols-sm="1"
+          label="프로세스 이름"
+          label-align-sm="right"
+          label-for="nested-street">
+        <b-form-input v-model="process.name"></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label-cols-sm="1"
+          label="실행 파일 위치"
+          label-align-sm="right"
+          label-for="nested-street">
+        <b-form-input v-model="process.path"></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label-cols-sm="1"
+          label="실행 파일 종류"
+          label-align-sm="right"
+          label-for="nested-street">
+        <b-form-input disabled v-model="process.type"></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label-cols-sm="1"
+          label="프로세스 ID"
+          label-align-sm="right"
+          label-for="nested-street">
+        <b-form-input disabled v-model="process.pid"></b-form-input>
+      </b-form-group>
+
+
+      <div class="float-right">
+        <b-button variant="outline-secondary" @Click="runProcess(process)" :disabled="process.is_running == true">실행</b-button>
+        <b-button variant="outline-secondary" @Click="killProcess(process)" :disabled="process.is_running == false">종료</b-button>
+        <b-button variant="outline-danger" @Click="deleteProcess(process)" :disabled="process.is_running == true">-</b-button>
+      </div>
+    </b-card>
+
+    <b-card bg-variant="light"
+            class="card">
+          <b-button class="float-right" @click="createProcess">+</b-button>
+      </b-form-group>
+    </b-card>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        processes: []
+      },
+      mounted() {
+        this.getProcesses()
+      },
+      methods: {
+        runProcess(process) {
+          axios.get(`/processes/run/${process.id}?type=${process.type}&path=${process.path}&name=${process.name}`)
+            .then(response => {
+              process.pid = response.data.pid
+              process.is_running = response.data.is_running
+            })
+            .catch(error => {
+              alert(error.response.data.error)
+            })
+        },
+        createProcess() {
+          axios.post('/processes/create', {})
+            .then(response => this.processes = response.data)
+        },
+        deleteProcess(process) {
+          axios.delete(`/processes/${process.id}`)
+            .then(response => this.processes = response.data)
+        },
+        getProcesses() {
+          axios.get('/processes')
+            .then(response => this.processes = response.data)
+            .catch(() => {
+              alert('Can not found processes')
+            })
+        },
+        killProcess(process) {
+          axios.get(`/processes/kill/${process.pid}`)
+            .then(() => {
+              process.pid = null
+              process.is_running = false
+            })
+            .catch(error => {
+              alert(error.response.data.error)
+            })
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
