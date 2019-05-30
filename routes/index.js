@@ -39,6 +39,7 @@ router.post('/processes/create', (req, res) => {
     id: nextProcessId,
     type: 'jar',
     path: '',
+    build_path: '',
     is_running: false,
     pid: null,
     name: ''
@@ -119,6 +120,34 @@ router.get('/processes/run/:id', (req, res) => {
   foundProcess.path = processPath
   foundProcess.name = processName
 
+  fs.writeFileSync(processesFileName, JSON.stringify(registeredProcess))
+  res.status(200).send(foundProcess)
+})
+
+router.get('/processes/build/:id', (req, res) => {
+  let id = parseInt(req.params.id)
+  let buildPath = req.query.build_path
+  if (!!id == false || !!buildPath == false) {
+    res.status(400).send({error: 'Id and Path are required.'})
+    return
+  }
+
+  let foundProcess = registeredProcess.find(it => it.id === id)
+  if (typeof foundProcess === 'undefined') {
+    res.status(400).send({error: `Process is not found. id(${id}).`})
+    return
+  }
+
+  const buildProcess = spawn(`${buildPath}/gradlew`, ['-p', `${buildPath}`, 'bootJar'])
+  buildProcess.stdout.on('data', data => {
+    nodeProcess.stdout.write(`${foundProcess.name}: ${new encoding.TextDecoder("utf-8").decode(data)}`)
+  })
+
+  buildProcess.stderr.on('data', data => {
+    nodeProcess.stdout.write(`${foundProcess.name}: ${new encoding.TextDecoder("utf-8").decode(data)}`)
+  })
+
+  foundProcess.build_path = buildPath
   fs.writeFileSync(processesFileName, JSON.stringify(registeredProcess))
   res.status(200).send(foundProcess)
 })

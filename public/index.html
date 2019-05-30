@@ -38,6 +38,14 @@
 
       <b-form-group
           label-cols-sm="1"
+          label="빌드 경로"
+          label-align-sm="right"
+          label-for="nested-street">
+        <b-form-input v-model="process.build_path"></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+          label-cols-sm="1"
           label="실행 파일 위치"
           label-align-sm="right"
           label-for="nested-street">
@@ -62,6 +70,7 @@
 
 
       <div class="float-right">
+        <b-button variant="outline-secondary" @Click="buildProcess(process)" :disabled="process.is_running == true">빌드</b-button>
         <b-button variant="outline-secondary" @Click="runProcess(process)" :disabled="process.is_running == true">실행</b-button>
         <b-button variant="outline-secondary" @Click="killProcess(process)" :disabled="process.is_running == false">종료</b-button>
         <b-button variant="outline-danger" @Click="deleteProcess(process)" :disabled="process.is_running == true">-</b-button>
@@ -91,6 +100,12 @@
               process.pid = response.data.pid
               process.is_running = response.data.is_running
             })
+            .catch(error => {
+              alert(error.response.data.error)
+            })
+        },
+        buildProcess(process) {
+          axios.get(`/processes/build/${process.id}?build_path=${process.build_path}`)
             .catch(error => {
               alert(error.response.data.error)
             })
