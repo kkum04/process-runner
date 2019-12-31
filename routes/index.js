@@ -162,6 +162,8 @@ router.get('/processes/kill/:pid', (req, res) => {
 
   const foundProcess = registeredProcess.find(it => it.pid === pid)
   if (typeof foundProcess == 'undefined') {
+    foundProcess.pid = null
+    foundProcess.is_running = false
     res.status(400).send({error: `Process is not found. pid(${pid})`})
     return
   }
