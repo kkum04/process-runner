@@ -14,16 +14,14 @@
 
   <link rel="stylesheet" href="/stylesheets/style.css">
 
-  <style>
-    .card:nth-child(n+2) {
-      border-top: 0px
-    }
-  </style>
-
 </head>
 
 <body>
   <div id="app">
+    <div class="all_button_container">
+      <b-button class="allButton" variant="primary" @Click="allRunProcess">전체<br>실행</b-button>
+      <b-button class="allButton" variant="danger" @Click="allKillProcess">전체<br>종료</b-button>
+    </div>
     <b-card bg-variant="light"
             class="card"
             v-for="process in processes">
@@ -91,13 +89,44 @@
         processes: []
       },
       mounted() {
-        this.getProcesses()
+        this.getProcesses();
+    
+      },
+      updated(){
+        
       },
       methods: {
+        allRunProcess() {
+          this.processes.forEach(process=>{
+            if(process.is_running) return;
+            axios.get(`/processes/run/${process.id}?type=${process.type}&path=${process.path}&name=${process.name}`)
+            .then(response => {
+              process.pid = response.data.pid;
+              process.is_running = response.data.is_running
+            })
+            .catch(error => {
+              alert(error.response.data.error)
+            })
+          })
+        },
+        allKillProcess(){
+          this.processes.forEach(process=>{
+            if(!process.is_running && process.pid !== null) return;
+            axios.get(`/processes/kill/${process.pid}`)
+            .then(() => {
+              process.pid = null;
+              process.is_running = false
+            })
+            .catch(error => {
+              alert(error.response.data.error);
+            })
+              
+          })
+        },
         runProcess(process) {
           axios.get(`/processes/run/${process.id}?type=${process.type}&path=${process.path}&name=${process.name}`)
             .then(response => {
-              process.pid = response.data.pid
+              process.pid = response.data.pid;
               process.is_running = response.data.is_running
             })
             .catch(error => {
@@ -128,7 +157,7 @@
         killProcess(process) {
           axios.get(`/processes/kill/${process.pid}`)
             .then(() => {
-              process.pid = null
+              process.pid = null;
               process.is_running = false
             })
             .catch(error => {
