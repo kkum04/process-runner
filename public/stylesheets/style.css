@@ -25,3 +25,8 @@ a {
   height: 80px;
   margin-right: 1%;
 }
+
+.spinner {
+  width:1.4rem;
+  height:1.4rem;
+}

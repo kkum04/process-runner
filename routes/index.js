@@ -178,7 +178,10 @@ router.get('/processes/kill/:pid', (req, res) => {
   })
 });
 
-router.get('/processes/git/fetch/:id', (req, res)=>{
+/**
+ * git pull 관련
+ */
+router.get('/processes/git/pull/:id', (req, res)=>{
   let id = parseInt(req.params.id);
   let buildPath = req.query.build_path;
   if (!!id === false || !!buildPath === false) {
