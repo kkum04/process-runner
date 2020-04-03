@@ -68,6 +68,8 @@
 
 
       <div class="float-right">
+        <span v-if="process.lastCommitAt">마지막 커밋날짜 :{{process.lastCommitAt}}</span>
+        <b-button variant="primary" @Click="gitFetch(process)">pull</b-button>
         <b-button variant="outline-secondary" @Click="buildProcess(process)" :disabled="process.is_running == true">빌드</b-button>
         <b-button variant="outline-secondary" @Click="runProcess(process)" :disabled="process.is_running == true">실행</b-button>
         <b-button variant="outline-secondary" @Click="killProcess(process)" :disabled="process.is_running == false">종료</b-button>
@@ -96,6 +98,12 @@
         
       },
       methods: {
+        gitFetch(process){
+          axios.get(`/processes/git/fetch/${process.id}?build_path=${process.build_path}`)
+              .then(response => {
+                this.processes = response.data
+              })
+        },
         allRunProcess() {
           this.processes.forEach(process=>{
             if(process.is_running) return;
