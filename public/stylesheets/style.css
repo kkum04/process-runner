@@ -19,13 +19,16 @@ a {
   z-index: 10;
   
 }
-.all_button_container button{
+.all_button_container .all_button{
   float:left;
   width:49%;
   height: 80px;
   margin-right: 1%;
 }
 
+.checkList {
+  width:100%;
+}
 .spinner {
   width:1.4rem;
   height:1.4rem;

@@ -19,13 +19,37 @@
 <body>
   <div id="app">
     <div class="all_button_container">
-      <b-button class="allButton" variant="primary" @Click="allRunProcess">전체<br>실행</b-button>
-      <b-button class="allButton" variant="danger" @Click="allKillProcess">전체<br>종료</b-button>
+      <div>
+        <b-button v-if="checkProcesses.length == 0"
+                  class="all_button"
+                  variant="primary"
+                  @Click="allRunProcess">
+          전체<br>실행
+        </b-button>
+        <b-button v-else class="all_button" variant="info" @Click="selectedRunProcess">선택<br>실행</b-button>
+      </div>
+      <div>
+        <b-button v-if="checkProcesses.length == 0"
+                  class="all_button"
+                  variant="danger"
+                  @Click="allKillProcess">
+          전체<br>종료
+        </b-button>
+        <b-button v-else class="all_button" variant="warning" @Click="selectedKillProcess">선택<br>종료</b-button>
+      </div>
+
     </div>
+
     <b-card bg-variant="light"
             class="card"
             v-for="process in processes">
-
+      <b-form-checkbox
+          v-model="checkProcesses"
+          :value="process.id"
+          @change.native.stop
+          @click.native.stop
+      >
+      </b-form-checkbox>
       <b-form-group
           label-cols-sm="1"
           label="프로세스 이름"
@@ -92,6 +116,7 @@
       el: '#app',
       data: {
         processes: [],
+        checkProcesses:[],
         isPulling: false
       },
       mounted() {
@@ -110,42 +135,54 @@
                 this.isPulling = false;
               })
         },
+        selectedRunProcess(){
+          const selectProcesses = this.processes.filter(process => this.checkProcesses.indexOf(process.id) > -1);
+          selectProcesses.forEach(process=>{
+            if(process.is_running) return;
+            this.runProcessMethodByProcess(process);
+          })
+        },
+        selectedKillProcess(){
+          const selectProcesses = this.processes.filter(process => this.checkProcesses.indexOf(process.id) > -1);
+          selectProcesses.forEach(process=>{
+            if(!process.is_running && process.pid !== null) return;
+            this.killProcessMethodByProcess(process);
+          })
+        },
         allRunProcess() {
           this.processes.forEach(process=>{
             if(process.is_running) return;
-            axios.get(`/processes/run/${process.id}?type=${process.type}&path=${process.path}&name=${process.name}`)
-            .then(response => {
-              process.pid = response.data.pid;
-              process.is_running = response.data.is_running
-            })
-            .catch(error => {
-              alert(error.response.data.error)
-            })
+            this.runProcessMethodByProcess(process);
           })
         },
         allKillProcess(){
           this.processes.forEach(process=>{
             if(!process.is_running && process.pid !== null) return;
-            axios.get(`/processes/kill/${process.pid}`)
-            .then(() => {
-              process.pid = null;
-              process.is_running = false
-            })
-            .catch(error => {
-              alert(error.response.data.error);
-            })
-              
+            this.killProcessMethodByProcess(process);
           })
         },
         runProcess(process) {
+          this.runProcessMethodByProcess(process);
+        },
+        runProcessMethodByProcess(process){
           axios.get(`/processes/run/${process.id}?type=${process.type}&path=${process.path}&name=${process.name}`)
-            .then(response => {
-              process.pid = response.data.pid;
-              process.is_running = response.data.is_running
-            })
-            .catch(error => {
-              alert(error.response.data.error)
-            })
+              .then(response => {
+                process.pid = response.data.pid;
+                process.is_running = response.data.is_running
+              })
+              .catch(error => {
+                alert(error.response.data.error)
+              })
+        },
+        killProcessMethodByProcess(process){
+          axios.get(`/processes/kill/${process.pid}`)
+              .then(() => {
+                process.pid = null;
+                process.is_running = false
+              })
+              .catch(error => {
+                alert(error.response.data.error)
+              })
         },
         buildProcess(process) {
           axios.get(`/processes/build/${process.id}?build_path=${process.build_path}`)
@@ -169,14 +206,7 @@
             })
         },
         killProcess(process) {
-          axios.get(`/processes/kill/${process.pid}`)
-            .then(() => {
-              process.pid = null;
-              process.is_running = false
-            })
-            .catch(error => {
-              alert(error.response.data.error)
-            })
+          this.killProcessMethodByProcess(process)
         }
       }
     })
