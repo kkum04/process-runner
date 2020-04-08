@@ -11,6 +11,7 @@
   <script src="//unpkg.com/vue@latest/dist/vue.min.js"></script>
   <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
   <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
 
   <link rel="stylesheet" href="/stylesheets/style.css">
 
@@ -20,7 +21,8 @@
   <div id="app">
     <div class="all_button_container">
       <div>
-        <b-button v-if="checkProcesses.length == 0"
+        <b-button class="checkList mb-2" v-b-toggle.sidebar-right>체크리스트</b-button>
+        <b-button v-if="selectedProcesses.length == 0"
                   class="all_button"
                   variant="primary"
                   @Click="allRunProcess">
@@ -29,7 +31,7 @@
         <b-button v-else class="all_button" variant="info" @Click="selectedRunProcess">선택<br>실행</b-button>
       </div>
       <div>
-        <b-button v-if="checkProcesses.length == 0"
+        <b-button v-if="selectedProcesses.length == 0"
                   class="all_button"
                   variant="danger"
                   @Click="allKillProcess">
@@ -37,14 +39,48 @@
         </b-button>
         <b-button v-else class="all_button" variant="warning" @Click="selectedKillProcess">선택<br>종료</b-button>
       </div>
-
     </div>
+
+    <b-sidebar id="sidebar-right" title="체크리스트" shadow right>
+      <div class="px-3 py-2">
+        <div class="checkList"
+             v-for="checkList in checkListsData"
+        >
+          <b-input-group class="mb-2">
+            <b-input-group-prepend is-text>
+              <b-form-checkbox class="mr-n2 w-25"
+                               v-model="selectedCheckListNames"
+                               :value="checkList.name"
+                               @change.native.stop
+                               @click.native.stop
+              >
+              </b-form-checkbox>
+            </b-input-group-prepend>
+            <b-button class="w-75" variant="outline-secondary" @Click="checkListClick(checkList)">{{checkList.name}}</b-button>
+          </b-input-group>
+        </div>
+        <div class="fixed-bottom p-2">
+          <b-button variant="warning" @Click="selectedProcessesClean" class="mb-2 w-100">전체 체크 해제</b-button>
+          <b-form-group
+              label-cols-sm="3"
+              label="리스트 이름"
+              label-align-sm="right"
+              label-for="nested-street">
+            <b-form-input v-model="checkListName"></b-form-input>
+          </b-form-group>
+          <div class="float-right">
+            <b-button variant="primary" @Click="saveCheckList">저장</b-button>
+            <b-button v-if="selectedCheckListNames.length > 0" variant="danger" @Click="deleteCheckList">삭제</b-button>
+          </div>
+        </div>
+      </div>
+    </b-sidebar>
 
     <b-card bg-variant="light"
             class="card"
             v-for="process in processes">
       <b-form-checkbox
-          v-model="checkProcesses"
+          v-model="selectedProcesses"
           :value="process.id"
           @change.native.stop
           @click.native.stop
@@ -116,15 +152,30 @@
       el: '#app',
       data: {
         processes: [],
-        checkProcesses:[],
-        isPulling: false
+        selectedProcesses:[],
+        isPulling: false,
+        checkListName:'',
+        checkListNames:[],
+        checkListsData: [],
+        selectedCheckListNames:[]
       },
       mounted() {
         this.getProcesses();
+        this.getCheckListNames();
       },
       updated(){
       },
       methods: {
+        getCheckListNames(){
+          if(Cookies.get('checklistNames')){
+            this.checkListNames = Cookies.get('checklistNames').split(",");
+            this.checkListNames.forEach(checkListName=>{
+
+              if(!Cookies.get(checkListName)) return alert("에러가 발생하였습니다.");
+              this.checkListsData.push({name:checkListName, selectedProcess:Cookies.get(checkListName).split(",") })
+            })
+          }
+        },
         gitFetch(process){
           this.isPulling = true;
           axios.get(`/processes/git/pull/${process.id}?build_path=${process.build_path}`)
@@ -136,14 +187,14 @@
               })
         },
         selectedRunProcess(){
-          const selectProcesses = this.processes.filter(process => this.checkProcesses.indexOf(process.id) > -1);
+          const selectProcesses = this.processes.filter(process => this.selectedProcesses.indexOf(process.id) > -1);
           selectProcesses.forEach(process=>{
             if(process.is_running) return;
             this.runProcessMethodByProcess(process);
           })
         },
         selectedKillProcess(){
-          const selectProcesses = this.processes.filter(process => this.checkProcesses.indexOf(process.id) > -1);
+          const selectProcesses = this.processes.filter(process => this.selectedProcesses.indexOf(process.id) > -1);
           selectProcesses.forEach(process=>{
             if(!process.is_running && process.pid !== null) return;
             this.killProcessMethodByProcess(process);
@@ -207,6 +258,38 @@
         },
         killProcess(process) {
           this.killProcessMethodByProcess(process)
+        },
+        saveCheckList(){
+          if(this.selectedProcesses.length === 0) return alert("체크리스트에 저장 하실 프로세스를 체크해주세요.");
+          if(this.checkListName === '') return alert("체크 리스트 이름을 입력해주세요.");
+          if(this.checkListNames.indexOf(this.checkListName) > -1) return alert("이미 있는 체크 리스트 이름입니다.");
+          this.checkListNames.push(this.checkListName);
+          Cookies.set('checklistNames', this.checkListNames.join(","));
+          Cookies.set(this.checkListName, this.selectedProcesses);
+          this.checkListsData.push({name:this.checkListName, selectedProcess:this.selectedProcesses });
+          this.checkListName = '';
+          this.selectedProcesses = [];
+          this.selectedCheckListNames = [];
+          alert("체크리스트 저장에 성공하였습니다.")
+        },
+        deleteCheckList(){
+          this.selectedCheckListNames.forEach(checkListName=>{
+            let checkListNameIndex = this.checkListNames.indexOf(checkListName);
+            this.checkListNames.splice(checkListNameIndex, 1);
+            this.checkListsData = this.checkListsData.filter(checkList => checkList.name !== checkListName);
+            Cookies.remove(checkListName);
+          });
+          this.checkListName = '';
+          this.selectedProcesses = [];
+          this.selectedCheckListNames = [];
+          Cookies.set('checklistNames', this.checkListNames.join(","));
+          alert("체크리스트 삭제가 성공하였습니다.")
+        },
+        selectedProcessesClean(){
+         this.selectedProcesses = [];
+        },
+        checkListClick(checkList){
+          this.selectedProcesses = checkList.selectedProcess
         }
       }
     })
