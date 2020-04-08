@@ -264,6 +264,7 @@
         saveCheckList(){
           if(this.selectedProcesses.length === 0) return alert("체크리스트에 저장 하실 프로세스를 체크해주세요.");
           if(this.checkListName === '') return alert("체크 리스트 이름을 입력해주세요.");
+          if(this.checkListName.length > 10) return alert("체크 리스트 이름이 너무 길어요...");
           if(this.checkListNames.indexOf(this.checkListName) > -1) return alert("이미 있는 체크 리스트 이름입니다.");
           this.checkListNames.push(this.checkListName);
           Cookies.set('checklistNames', this.checkListNames.join(","));
