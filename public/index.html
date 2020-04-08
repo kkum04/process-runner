@@ -19,9 +19,11 @@
 
 <body>
   <div id="app">
+    <div>
+      <b-button class="checkListOnButton mb-2" v-b-toggle.sidebar-right>✔</b-button>
+    </div>
     <div class="all_button_container">
       <div>
-        <b-button class="checkList mb-2" v-b-toggle.sidebar-right>체크리스트</b-button>
         <b-button v-if="selectedProcesses.length == 0"
                   class="all_button"
                   variant="primary"
@@ -41,14 +43,14 @@
       </div>
     </div>
 
-    <b-sidebar id="sidebar-right" title="체크리스트" shadow right>
+    <b-sidebar id="sidebar-right" title="체크리스트" bg-variant="dark" text-variant="light" shadow right>
       <div class="px-3 py-2">
         <div class="checkList"
              v-for="checkList in checkListsData"
         >
           <b-input-group class="mb-2">
             <b-input-group-prepend is-text>
-              <b-form-checkbox class="mr-n2 w-25"
+              <b-form-checkbox class="mr-n2"
                                v-model="selectedCheckListNames"
                                :value="checkList.name"
                                @change.native.stop
@@ -56,7 +58,7 @@
               >
               </b-form-checkbox>
             </b-input-group-prepend>
-            <b-button class="w-75" variant="outline-secondary" @Click="checkListClick(checkList)">{{checkList.name}}</b-button>
+            <b-button class="checkListName" variant="light" @Click="checkListClick(checkList)">{{checkList.name}}</b-button>
           </b-input-group>
         </div>
         <div class="fixed-bottom p-2">

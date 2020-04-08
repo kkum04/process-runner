@@ -1,35 +1,48 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
-  color: #00B7FF;
+    color: #00B7FF;
 }
 
 .card:nth-child(n+2) {
-  border-top: 0px
-}
-.all_button_container {
-  width: 160px;
-  overflow: hidden;
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 10;
-  
-}
-.all_button_container .all_button{
-  float:left;
-  width:49%;
-  height: 80px;
-  margin-right: 1%;
+    border-top: 0px
 }
 
-.checkList {
-  width:100%;
+.all_button_container {
+    width: 160px;
+    overflow: hidden;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 10;
+
 }
+
+.all_button_container .all_button {
+    float: left;
+    width: 49%;
+    height: 80px;
+    margin-right: 1%;
+}
+
+.checkListOnButton {
+    width: 40px;
+    height: 40px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+}
+
+.checkListName {
+    width: 100%;
+    max-width: 247px;
+}
+
 .spinner {
-  width:1.4rem;
-  height:1.4rem;
+    width: 1.4rem;
+    height: 1.4rem;
 }
