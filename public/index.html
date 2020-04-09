@@ -267,8 +267,8 @@
           if(this.checkListName.length > 10) return alert("체크 리스트 이름이 너무 길어요...");
           if(this.checkListNames.indexOf(this.checkListName) > -1) return alert("이미 있는 체크 리스트 이름입니다.");
           this.checkListNames.push(this.checkListName);
-          Cookies.set('checklistNames', this.checkListNames.join(","));
-          Cookies.set(this.checkListName, this.selectedProcesses);
+          Cookies.set('checklistNames', this.checkListNames.join(","),{ expires: 365 });
+          Cookies.set(this.checkListName, this.selectedProcesses, { expires: 365 });
           this.checkListsData.push({name:this.checkListName, selectedProcess:this.selectedProcesses });
           this.checkListName = '';
           this.selectedProcesses = [];
@@ -285,7 +285,7 @@
           this.checkListName = '';
           this.selectedProcesses = [];
           this.selectedCheckListNames = [];
-          Cookies.set('checklistNames', this.checkListNames.join(","));
+          Cookies.set('checklistNames', this.checkListNames.join(","), { expires: 365 });
           alert("체크리스트 삭제가 성공하였습니다.")
         },
         selectedProcessesClean(){
