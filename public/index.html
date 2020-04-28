@@ -189,14 +189,20 @@
               })
         },
         selectedRunProcess(){
-          const selectProcesses = this.processes.filter(process => this.selectedProcesses.indexOf(process.id) > -1);
+          const parserIntSelectedProcesses = this.selectedProcesses.map(stringId => {
+            return parseInt(stringId)
+          })
+          const selectProcesses = this.processes.filter(process => parserIntSelectedProcesses.indexOf(process.id) > -1);
           selectProcesses.forEach(process=>{
             if(process.is_running) return;
             this.runProcessMethodByProcess(process);
           })
         },
         selectedKillProcess(){
-          const selectProcesses = this.processes.filter(process => this.selectedProcesses.indexOf(process.id) > -1);
+          const parserIntSelectedProcesses = this.selectedProcesses.map(stringId => {
+            return parseInt(stringId)
+          })
+          const selectProcesses = this.processes.filter(process => parserIntSelectedProcesses.indexOf(process.id) > -1);
           selectProcesses.forEach(process=>{
             if(!process.is_running && process.pid !== null) return;
             this.killProcessMethodByProcess(process);
